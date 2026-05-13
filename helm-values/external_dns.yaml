@@ -1,0 +1,15 @@
+Provider: aws
+
+env:
+  - name: AWS_DEFAULT_REGION
+    value: eu-west-2
+
+
+domainFilters:
+  - lab.hassanhome.com # specifies only manage this Domain name
+
+serviceAccount:
+  create: true
+  name: external-dns
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::891377356090:role/external-dns-2026051217441656660000000b # inputed my external dns role arn
