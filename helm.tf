@@ -43,7 +43,7 @@ resource "helm_release" "cert_manager" { # Installs cert-manager using Helm = ce
 }
 
 resource "helm_release" "external_dns" { # Installs external-dns using Helm
-  # external-dns automatically creates/updates DNS records in Route53
+  # external-dns automatically creates/updates DNS records in Route53 - added 3 more records since **
   # based on Kubernetes Ingress or Service resources.
   name       = "external-dns"
   repository = "https://kubernetes-sigs.github.io/external-dns"
