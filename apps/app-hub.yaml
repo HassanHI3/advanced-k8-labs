@@ -1,5 +1,11 @@
 # apps/app-hub.yml
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: the-app-hub
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,7 +31,7 @@ spec:
     spec:
       containers:
         - name: the-app-hub
-          image: moabukar/the-app-hub:22e0324    # <-- replace
+          image: moabukar/the-app-hub:22e0324
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -49,12 +55,10 @@ spec:
       protocol: TCP
       port: 80
       targetPort: 3000
-      protocol: TCP
     - name: app-port
       protocol: TCP
       port: 8086
       targetPort: 3000
-      protocol: TCP
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -64,11 +68,9 @@ metadata:
   namespace: the-app-hub
   annotations:
     # cert-manager: issue a Let's Encrypt cert via the ClusterIssuer
-    cert-manager.io/cluster-issuer: issuer
-
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     # external-dns: create the Route53 A/ALIAS record automatically
     external-dns.alpha.kubernetes.io/hostname: the-app-hub.lab.hassanhome.com
-
     # NGINX: redirect HTTP → HTTPS
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -89,7 +91,3 @@ spec:
                 name: the-app-hub
                 port:
                   number: 80
-  tls:
-    - hosts:
-        - the-app-hub.lab.hassanhome.com
-      secretName: the-app-hub-tls
