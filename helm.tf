@@ -70,9 +70,10 @@ resource "helm_release" "external_dns" { # Installs external-dns using Helm
   ]
 }
 
-resource "helm_release" "argocd" { # Installs Argo CD using Helm.
-  # Argo CD watches your Git repository and syncs Kubernetes manifests
-  # into the EKS cluster.
+# Installs Argo CD using Helm.
+# Argo CD watches your Git repository and syncs Kubernetes manifests
+# into the EKS cluster.
+resource "helm_release" "argocd" {
   name       = "argocd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
@@ -82,9 +83,9 @@ resource "helm_release" "argocd" { # Installs Argo CD using Helm.
   create_namespace = true
   namespace        = "argocd"
 
-  values = [ # loads Argo CD Helm values from this YAML file and injects it into the helm release on plan/apply time.
+  values = [
     file("helm-values/argocd.yaml")
   ]
-
+  # loads Argo CD Helm values from this YAML file and injects it into the helm release on plan/apply time.
 }
 

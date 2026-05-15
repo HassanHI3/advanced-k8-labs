@@ -14,7 +14,7 @@ server:  # Passes extra startup arguments to the Argo CD server container.
     ingressClassName: nginx
     annotations:
       nginx.org/hsts: "false"
-      cert-manager.io/issuer: Issuer
+      cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
       - argocd.lab.hassanhome.com
     tls:
