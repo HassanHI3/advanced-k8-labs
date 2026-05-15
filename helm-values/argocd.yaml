@@ -1,0 +1,14 @@
+server:
+# to disable ssl redirection as our ingress controller handles this
+  extraArgs:
+    - --insecure
+  service:
+    type: ClusterIP
+    ingress:
+      enabled: true
+      hosts:
+        - argocd.hassanhome.com
+      tls:
+        - secretName: argocd-tls
+          hosts:
+            - argocd.hassanhome.com
