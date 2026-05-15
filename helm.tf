@@ -53,6 +53,17 @@ resource "helm_release" "external_dns" { # Installs external-dns using Helm
   create_namespace = true
   namespace        = "external-dns"
 
+  set = [ #This allows cert-manager to assume the AWS IAM role using IRSA/OIDC = it adds the IAM role ARN as an annotation on the cert-manager service account.
+    {
+      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = module.external_dns_irsa.arn
+    },
+    {
+      name  = "crds.enabled" # Installs cert-manager CRDs = CRDs allow Kubernetes to understand custom resources like : Certificate, Issuer, ClusterIssuer, etc.
+      value = "true"
+    }
+  ]
+
   values = [ # Loads external-dns Helm values from this YAML file.
     # reads file at plan/apply time and injects it into the helm release.
     file("helm-values/external_dns.yaml")
@@ -76,3 +87,4 @@ resource "helm_release" "argocd" { # Installs Argo CD using Helm.
   ]
 
 }
+

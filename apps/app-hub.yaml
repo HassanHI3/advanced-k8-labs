@@ -1,0 +1,95 @@
+# apps/app-hub.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: the-app-hub
+  namespace: the-app-hub
+  labels:
+    app.kubernetes.io/name: the-app-hub
+    app.kubernetes.io/part-of: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: the-app-hub
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: the-app-hub
+    spec:
+      containers:
+        - name: the-app-hub
+          image: moabukar/the-app-hub:22e0324    # <-- replace
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: the-app-hub
+  namespace: the-app-hub
+  labels:
+    app.kubernetes.io/name: the-app-hub
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: the-app-hub
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 3000
+      protocol: TCP
+    - name: app-port
+      protocol: TCP
+      port: 8086
+      targetPort: 3000
+      protocol: TCP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: the-app-hub-ingress
+  namespace: the-app-hub
+  annotations:
+    # cert-manager: issue a Let's Encrypt cert via the ClusterIssuer
+    cert-manager.io/cluster-issuer: issuer
+
+    # external-dns: create the Route53 A/ALIAS record automatically
+    external-dns.alpha.kubernetes.io/hostname: the-app-hub.lab.hassanhome.com
+
+    # NGINX: redirect HTTP → HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - the-app-hub.lab.hassanhome.com
+      secretName: the-app-hub-tls
+  rules:
+    - host: the-app-hub.lab.hassanhome.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: the-app-hub
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - the-app-hub.lab.hassanhome.com
+      secretName: the-app-hub-tls

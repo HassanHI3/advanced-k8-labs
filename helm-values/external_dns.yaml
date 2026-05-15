@@ -6,10 +6,10 @@ env:
 
 
 domainFilters:
-  - lab.hassanhome.com # specifies only manage this Domain name
+  - hassanhome.com # specifies only manage this Domain name
 
 serviceAccount:
   create: true
   name: external-dns
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::891377356090:role/external-dns-2026051217441656660000000b # inputted my external dns role arn
+    eks.amazonaws.com/role-arn: ${module.external_dns_irsa.arn} # This allows External DNS to assume the AWS IAM role using IRSA/OIDC = it adds the IAM role ARN as an annotation on the External DNS service account.

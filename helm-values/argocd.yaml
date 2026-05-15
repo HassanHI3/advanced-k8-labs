@@ -1,18 +1,37 @@
-server:
-# to disable ssl redirection as our ingress controller handles this
-  extraArgs:
+server:  # Passes extra startup arguments to the Argo CD server container.
+  extraArgs: # Disables Argo CD's internal HTTPS/TLS.
+    # Traffic will instead be encrypted at the NGINX Ingress layer.
+    # Workflow:
+    # User → HTTPS → NGINX Ingress → HTTP → Argo CD Server
+    # This avoids double TLS termination and simplifies ingress configuration.
     - --insecure
+
   service:
     type: ClusterIP
-    ingress:
-      enabled: true
-      ingressClassName: nginx
-      annotations:
-        nginx.org/hsts: "false"
-        cert-manager.io/cluster-issuer: issuer
-      hosts:
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.org/hsts: "false"
+      cert-manager.io/issuer: Issuer
+    hosts:
       - argocd.lab.hassanhome.com
-      tls:
+    tls:
       - secretName: argocd-ingress-tls
         hosts:
-        - argocd.lab.hassanhome.com
+          - argocd.lab.hassanhome.com
+
+
+
+# ---- Argo CD workflow ----
+# 1. Terraform installs Argo CD using the Helm chart.
+# 2. Helm creates the Argo CD pods, services, configmaps, and other resources.
+# 3. Argo CD runs inside the EKS cluster in the "argocd" namespace.
+# 4. The Argo CD server is exposed internally using a ClusterIP service.
+# 5. The Argo CD Helm values create an Ingress resource.
+# 6. The NGINX Ingress Controller reads that Ingress rule.
+# 7. external-dns sees the Ingress hostname and creates the Route53 DNS record.
+# 8. cert-manager sees the TLS annotation and requests an SSL certificate.
+# 9. Once DNS and TLS are ready, you access Argo CD using your domain.
+# 10. Argo CD can then watch your Git repo and sync Kubernetes manifests into EKS.
