@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: hassaanhi3@icloud.com
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    # Challenge solvers
+    solvers:
+    - dns01:
+        route53:
+          hostedZoneID: Z07570801AKJJJYP6TDJ1
+          region: eu-west-2
+      selector:
+        dnsZones:
+        - lab.hassanhome.com
+    - http01:
+        ingress:
+          class: nginx

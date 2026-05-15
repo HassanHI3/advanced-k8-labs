@@ -1,45 +1,50 @@
+# Installs the ingress-nginx Helm chart.
+# This creates the Ingress Controller that receives external traffic
+# and routes it to the correct Kubernetes Services.
+
 resource "helm_release" "nginx_ingress" {
   name       = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   version    = "4.11.3"
 
-  namespace        = "ingress-nginx"
+  namespace        = "ingress-nginx"   # Installs ingress-nginx into its own namespace.
   create_namespace = true
 
-  timeout = 600
+  timeout = 600  # Gives Helm more time to install all resources.
 }
 
-resource "helm_release" "cert_manager" {
+resource "helm_release" "cert_manager" { # Installs cert-manager using Helm = cert-manager automatically creates and renews SSL/TLS certificates.
   name       = "cert-manager"
   repository = "oci://quay.io/jetstack/charts"
   chart      = "cert-manager"
   version    = "v1.20.2"
 
   create_namespace = true
-  namespace        = "cert-manager" # has to match the namespace in IRSA.tf for cert-manager, as the IAM role is linked to a service account in this namespace.
+  namespace        = "cert-manager"  # Must match the namespace used in the cert-manager IRSA role. The IAM role is linked to the service account: "cert-manager:cert-manager" (namespace:serviceaccount) and if the Helm release creates the service account in a different namespace, the IAM role won't work.
+# Links the cert-manager K8s service account to the AWS IAM role via OIDC
 
-  # Links the cert-manager K8s service account to the AWS IAM role via OIDC
-
-  set = [
+  set = [ #This allows cert-manager to assume the AWS IAM role using IRSA/OIDC = it adds the IAM role ARN as an annotation on the cert-manager service account.
     {
       name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
       value = module.cert-manager-irsa.arn
     },
     {
-      name  = "crds.enabled"
+      name  = "crds.enabled" # Installs cert-manager CRDs = CRDs allow Kubernetes to understand custom resources like : Certificate, Issuer, ClusterIssuer, etc.
       value = "true"
     }
   ]
 
-  # this links configs from helm values to this resource block
+  # Loads extra cert-manager Helm configuration from this YAML file.
   # reads file at plan/apply time and injects it into the helm release.
   values = [
     file("helm-values/cert_manager.yaml")
   ]
 }
 
-resource "helm_release" "external_dns" {
+resource "helm_release" "external_dns" { # Installs external-dns using Helm
+  # external-dns automatically creates/updates DNS records in Route53
+  # based on Kubernetes Ingress or Service resources.
   name       = "external-dns"
   repository = "https://kubernetes-sigs.github.io/external-dns"
   chart      = "external-dns"
@@ -48,124 +53,26 @@ resource "helm_release" "external_dns" {
   create_namespace = true
   namespace        = "external-dns"
 
-  values = [
+  values = [   # Loads external-dns Helm values from this YAML file.
+  # reads file at plan/apply time and injects it into the helm release.
     file("helm-values/external_dns.yaml")
   ]
 }
 
+resource "helm_release" "argocd" { # Installs Argo CD using Helm.
+# Argo CD watches your Git repository and syncs Kubernetes manifests
+# into the EKS cluster.
+  name       = "argocd"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argo-cd"
+  version    = "5.24.0"
+  timeout = 600
 
+  create_namespace = true
+  namespace        = "argocd"
 
+  values = [ # loads Argo CD Helm values from this YAML file and injects it into the helm release on plan/apply time.
+    file("helm-values/argocd.yaml")
+  ]
 
-
-
-
-# Installs cert-manager CRDs (Certificate, ClusterIssuer, Issuer etc) so we don't have to kubectl apply before installing the chart.
-# without this the cert-manager chart would fail as k8 wouldn't recognise it's resource types.
-
-#   set = [{
-#     name  = "crds.enabled"
-#     value = "true"
-#   }]
-
-# this links configs from helm values to this resource block
-# reads file at plan/apply time and injects it into the helm release.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# resource "helm_release" "nginx_ingress" {
-#   name       = "nginx-ingress-controller"
-#   repository = "https://charts.bitnami.com/bitnami"
-#   chart      = "nginx-ingress-controller"
-#   version    = "9.3.12"
-
-#   #   set {
-#   #     name  = "service.type"
-#   #     value = "ClusterIP"
-#   #   }
-
-#   # set's the service to ClusterIP by default in K8
-
-#   create_namespace = true
-#   namespace        = "ingress-nginx"
-# }
-
-# resource "helm_release" "cert_manager" {
-#   name       = "cert-manager"
-#   repository = "https://charts.jetstack.io"
-#   chart      = "cert-manager"
-
-#   create_namespace = true
-#   namespace        = "cert-manager"
-#   version          = "v1.15.0"
-
-#   set {
-#     name  = "installCRDs"
-#     value = "true"
-#   }
-
-#   set {
-#     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-#     value = module.cert-manager-irsa.arn
-#   }
-
-#   values = [
-#     file("helm-values/cert_manager.yaml")
-#   ]
-# }
-
-# resource "helm_release" "external_dns" {
-#   name       = "external-dns"
-#   repository = "https://charts.bitnami.com/bitnami"
-#   chart      = "external-dns"
-#   version    = "5.3.0"
-
-#   create_namespace = true
-#   namespace        = "external-dns" #still using this namespace because our IAM role wont work anywhere else
-
-#   values = [
-#     "${file("helm-values/external_dns.yaml")}"
-#   ]
-# }
-
-
-
-
-
-
-#   set = [
-#     {
-#       name  = "wait-for"
-#       value = module.cert-manager-irsa.iam_role_arn
-#     },
-#     {
-#       name  = "installCRDs"
-#       value = "true"
-#     }
-#   ]
+}
