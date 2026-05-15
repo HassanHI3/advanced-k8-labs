@@ -8,10 +8,10 @@ resource "helm_release" "nginx_ingress" {
   chart      = "ingress-nginx"
   version    = "4.11.3"
 
-  namespace        = "ingress-nginx"   # Installs ingress-nginx into its own namespace.
+  namespace        = "ingress-nginx" # Installs ingress-nginx into its own namespace.
   create_namespace = true
 
-  timeout = 600  # Gives Helm more time to install all resources.
+  timeout = 600 # Gives Helm more time to install all resources.
 }
 
 resource "helm_release" "cert_manager" { # Installs cert-manager using Helm = cert-manager automatically creates and renews SSL/TLS certificates.
@@ -21,8 +21,8 @@ resource "helm_release" "cert_manager" { # Installs cert-manager using Helm = ce
   version    = "v1.20.2"
 
   create_namespace = true
-  namespace        = "cert-manager"  # Must match the namespace used in the cert-manager IRSA role. The IAM role is linked to the service account: "cert-manager:cert-manager" (namespace:serviceaccount) and if the Helm release creates the service account in a different namespace, the IAM role won't work.
-# Links the cert-manager K8s service account to the AWS IAM role via OIDC
+  namespace        = "cert-manager" # Must match the namespace used in the cert-manager IRSA role. The IAM role is linked to the service account: "cert-manager:cert-manager" (namespace:serviceaccount) and if the Helm release creates the service account in a different namespace, the IAM role won't work.
+  # Links the cert-manager K8s service account to the AWS IAM role via OIDC
 
   set = [ #This allows cert-manager to assume the AWS IAM role using IRSA/OIDC = it adds the IAM role ARN as an annotation on the cert-manager service account.
     {
@@ -53,20 +53,20 @@ resource "helm_release" "external_dns" { # Installs external-dns using Helm
   create_namespace = true
   namespace        = "external-dns"
 
-  values = [   # Loads external-dns Helm values from this YAML file.
-  # reads file at plan/apply time and injects it into the helm release.
+  values = [ # Loads external-dns Helm values from this YAML file.
+    # reads file at plan/apply time and injects it into the helm release.
     file("helm-values/external_dns.yaml")
   ]
 }
 
 resource "helm_release" "argocd" { # Installs Argo CD using Helm.
-# Argo CD watches your Git repository and syncs Kubernetes manifests
-# into the EKS cluster.
+  # Argo CD watches your Git repository and syncs Kubernetes manifests
+  # into the EKS cluster.
   name       = "argocd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
   version    = "5.24.0"
-  timeout = 600
+  timeout    = 600
 
   create_namespace = true
   namespace        = "argocd"

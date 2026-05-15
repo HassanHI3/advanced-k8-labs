@@ -6,9 +6,13 @@ server:
     type: ClusterIP
     ingress:
       enabled: true
+      ingressClassName: nginx
+      annotations:
+        nginx.org/hsts: "false"
+        cert-manager.io/cluster-issuer: issuer
       hosts:
-        - argocd.hassanhome.com
+      - argocd.lab.hassanhome.com
       tls:
-        - secretName: argocd-tls
-          hosts:
-            - argocd.hassanhome.com
+      - secretName: argocd-ingress-tls
+        hosts:
+        - argocd.lab.hassanhome.com

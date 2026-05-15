@@ -4,8 +4,8 @@
 module "cert-manager-irsa" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
 
-  name                          = "cert-manager" # name of the IAM role to create
-  attach_cert_manager_policy    = true           # Attaches the AWS permissions cert-manager needs.
+  name                          = "cert-manager"                                         # name of the IAM role to create
+  attach_cert_manager_policy    = true                                                   # Attaches the AWS permissions cert-manager needs.
   cert_manager_hosted_zone_arns = ["arn:aws:route53:::hostedzone/Z07570801AKJJJYP6TDJ1"] # Limits cert-manager permissions to this specific Route53 hosted zone only.
   # (hosted zone ID is from Route53 console) and created manually before running terraform apply.
 
