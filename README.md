@@ -25,9 +25,6 @@
 
 This repository provisions a complete, opinionated Kubernetes platform on AWS. Infrastructure is defined in **Terraform**, in-cluster platform tooling is installed via **Helm**, and application workloads are continuously delivered through **Argo CD**. TLS certificates and DNS records are issued and reconciled automatically — push to Git, get a working HTTPS endpoint.
 
-> [!NOTE]
-> This is a learning / portfolio project intended to demonstrate production-style patterns. Review IAM scopes and resource sizing before using in a real environment.
-
 ---
 
 ## 🏗 Architecture
