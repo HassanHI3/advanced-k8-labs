@@ -34,30 +34,6 @@ This repository provisions a complete, opinionated Kubernetes platform on AWS. I
 
 The platform is composed of two layers: an **infrastructure layer** managed by Terraform, and a **platform layer** installed on top of EKS via Helm.
 
-```mermaid
-flowchart TB
-    Users([Users]) -->|HTTPS| IGW
-    subgraph AWS["AWS Account"]
-        subgraph VPC["VPC"]
-            IGW[Internet Gateway]
-            subgraph EKS["EKS Cluster"]
-                NGINX[NGINX Ingress]
-                CM[cert-manager]
-                EDNS[external-dns]
-                ARGO[Argo CD]
-                APPS[Application Workloads]
-            end
-        end
-        R53[(Route53 Hosted Zone)]
-    end
-    Git[(Git Repository)] -.->|webhook / poll| ARGO
-    IGW --> NGINX
-    NGINX --> APPS
-    EDNS -.->|creates records| R53
-    CM -.->|DNS01 challenge| R53
-    ARGO -->|deploys| APPS
-```
-
 <details>
 <summary><b>Infrastructure Layer (Terraform)</b></summary>
 
