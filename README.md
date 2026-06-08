@@ -368,13 +368,3 @@ This project demonstrates hands-on experience with:
 - Structuring infrastructure and application code for reproducibility
 
 ---
-
-## 📄 License
-
-Released under the [MIT License](LICENSE).
-
-<div align="center">
-
-⭐ If you found this useful, consider starring the repo.
-
-</div>
